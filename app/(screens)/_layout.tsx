@@ -26,20 +26,20 @@ export default function TabLayout() {
           default: {},
         }),
       }}>
-      {/* Home Tab */}
+      {/* Admin Home Tab */}
       <Tabs.Screen
-        name="home"
+        name="adminhome"
         options={{
-          title: 'Home',
+          title: 'Admin',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="home" size={28} color={color} />
+            <FontAwesome name="user-secret" size={28} color={color} />
           ),
         }}
       />
 
       {/* Add Data Tab */}
       <Tabs.Screen
-        name="addData"
+        name="addoptions"
         options={{
           title: 'Add',
           tabBarIcon: ({ color }) => (
@@ -50,7 +50,7 @@ export default function TabLayout() {
 
       {/* Profile Tab */}
       <Tabs.Screen
-        name="profile"
+        name="adminprofile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
@@ -58,8 +58,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      
     </Tabs>
   );
 }
