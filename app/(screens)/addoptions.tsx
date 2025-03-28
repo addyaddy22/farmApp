@@ -6,7 +6,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { isOnline } from '@/utils/network';
 import { syncFarmData } from '@/utils/sync';
-import { insertFarmData, insertFarmOptionsData } from '@/utils/database';
+import { insertFarmData, insertFarmOptionsData, submitOptionsToApi, submitToApi } from '@/utils/database';
 
 interface FarmOptionsData {
   farm_type: string;
@@ -23,32 +23,22 @@ export default function AddFarmOptionsData() {
 
   const handleSubmit = async () => {
     try {
-      if (await isOnline()) {
-        // If online, submit directly to the backend
-        await syncFarmData();
-      } else {
-        // If offline, store locally
-        const dataSubmitted = await insertFarmOptionsData(formData);
-        console.log(dataSubmitted)
-        setFormData({
-          farm_type: "",
-          crop: "",
-          location: "",
-        });
-        Alert.alert("Success", "Data submitted successfully");
+      // Submit directly to the API
+      await submitOptionsToApi(formData);
 
-      }
-      Alert.alert("Success", "Data submitted successfully");
+      // Clear form and show success message
       setFormData({
         farm_type: "",
         crop: "",
         location: "",
       });
+
+      Alert.alert("Success", "Data submitted successfully");
     } catch (error) {
+      console.error('Submission error:', error);
       Alert.alert("Error", "Failed to submit data");
     }
   };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}

@@ -2,7 +2,7 @@ import { fetchUnsyncedFarmData, updateSyncStatus } from "./database";
 import axios from "axios";
 import { isOnline } from "./network";
 
-const API_URL = "http://<your-backend-url>";
+const API_URL = "https://farm7.eport.dev";
 
 // Sync unsynced farm data with the backend
 export const syncFarmData = async () => {

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { isOnline } from '@/utils/network';
 import { syncFarmData } from '@/utils/sync';
-import { insertFarmData } from '@/utils/database';
+import { insertFarmData, submitToApi } from '@/utils/database';
 
 interface FarmData {
   farmer_name: string;
@@ -28,24 +28,10 @@ export default function AddData() {
 
   const handleSubmit = async () => {
     try {
-      if (await isOnline()) {
-        // If online, submit directly to the backend
-        await syncFarmData();
-      } else {
-        // If offline, store locally
-        const dataSubmitted = await insertFarmData(formData);
-        console.log(dataSubmitted)
-        setFormData({
-          farmer_name: "",
-          nation_id: "",
-          farm_type: "",
-          crop: "",
-          location: "",
-        });
-        Alert.alert("Success", "Data submitted successfully");
+      // Submit directly to the API
+      await submitToApi(formData);
 
-      }
-      Alert.alert("Success", "Data submitted successfully");
+      // Clear form and show success message
       setFormData({
         farmer_name: "",
         nation_id: "",
@@ -53,10 +39,44 @@ export default function AddData() {
         crop: "",
         location: "",
       });
+
+      Alert.alert("Success", "Data submitted successfully");
     } catch (error) {
+      console.error('Submission error:', error);
       Alert.alert("Error", "Failed to submit data");
     }
   };
+  // const handleSubmit = async () => {
+  //   try {
+  //     if (await isOnline()) {
+  //       // If online, submit directly to the backend
+  //       await syncFarmData();
+  //     } else {
+  //       // If offline, store locally
+  //       const dataSubmitted = await insertFarmData(formData);
+  //       console.log(dataSubmitted)
+  //       setFormData({
+  //         farmer_name: "",
+  //         nation_id: "",
+  //         farm_type: "",
+  //         crop: "",
+  //         location: "",
+  //       });
+  //       Alert.alert("Success", "Data submitted successfully");
+
+  //     }
+  //     Alert.alert("Success", "Data submitted successfully");
+  //     setFormData({
+  //       farmer_name: "",
+  //       nation_id: "",
+  //       farm_type: "",
+  //       crop: "",
+  //       location: "",
+  //     });
+  //   } catch (error) {
+  //     Alert.alert("Error", "Failed to submit data");
+  //   }
+  // };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

@@ -1,81 +1,98 @@
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, FlatList, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, FlatList, Image, ActivityIndicator, RefreshControl } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { router, useFocusEffect } from 'expo-router';
-import { fetchFarmData } from '@/utils/database';
+import { fetchFarmData, getAllFarmers, getFarmerStats } from '@/utils/database';
 
-// Sample data (replace with actual data from your backend)
-const sampleData = [
-  {
-    id: '1',
-    farmer_name: 'John Doe',
-    nation_id: '123456789',
-    farm_type: 'Dairy',
-    crop: 'Corn',
-    location: 'New York',
-  },
-  {
-    id: '2',
-    farmer_name: 'Jane Smith',
-    nation_id: '987654321',
-    farm_type: 'Poultry',
-    crop: 'Wheat',
-    location: 'California',
-  },
-];
+interface Farmer {
+  id: number;
+  farmer_name: string;
+  nation_id: string;
+  farm_type: string;
+  crop: string;
+  location: string;
+}
+
+interface FarmerStats {
+  total_farmers: number;
+  total_crops: number;
+  total_locations: number;
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredData, setFilteredData] = useState(sampleData);
-  const [farmers, setFarmers] = useState()
+  // const [farmers, setFarmers] = useState()
+
+  const [farmers, setFarmers] = useState<Farmer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<FarmerStats | null>(null);
+  const [filteredData, setFilteredData] = useState(farmers);
 
 
-  //Function to retrieve famers data
-  // const fetchFarmersCount = async () => {
-  //   try {
-  //     const userCounted = await countUsers();
-  //     setUserCount(userCounted)
-  //     console.log(`Total users: ${userCount}`);
-  //   } catch (error) {
-  //     console.error("Failed to fetch user count:", error);
-  //   }
-  // };
 
-  const fetchedFarmData = async () => {
+  const fetchFarmers = async () => {
     try {
-      const farmers_returned = await fetchFarmData();
-      setFarmers(farmers_returned)
-      console.log(`Farmers returned: ${farmers_returned}`);
-    } catch (error) {
-      console.error("Failed to fetch Number of Crops:", error);
+      setLoading(true);
+      const data = await getAllFarmers();
+      setFarmers(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch farmers');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  // const fetchCropTypeCount = async () => {
-  //   try {
-  //     const cropTypeCounted = await countCropTypes();
-  //     setCropTypeCount(cropTypeCounted)
-  //     console.log(`Total Crop Types: ${userCount}`);
-  //   } catch (error) {
-  //     console.error("Failed to fetch Crop Types:", error);
-  //   }
-  // };
+  const loadStats = async () => {
+    try {
+      const data = await getFarmerStats();
+      setStats(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadStats();
+
+  // Reload data every time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchedFarmData();
-      // fetchCropCount();
-      // fetchCropTypeCount();
+      fetchFarmers();
+      loadStats();
     }, [])
   );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchFarmers();
+  };
+
+  if (loading && !refreshing) {
+    return <ActivityIndicator size="large" />;
+  }
+
+  if (error) {
+    return <Text>Error: {error}</Text>;
+  }
+  if (!stats) return <Text>No data available</Text>;
+
+
+
+
   // Handle search
   const handleSearch = (query) => {
     setSearchQuery(query);
-    const filtered = sampleData.filter((item) =>
+    const filtered = farmers.filter((item) =>
       item.farmer_name.toLowerCase().includes(query.toLowerCase()) ||
       item.location.toLowerCase().includes(query.toLowerCase())
     );
@@ -128,24 +145,26 @@ export default function HomeScreen() {
       {/* Statistics Section */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>2</Text>
-          <Text style={styles.statLabel}>Total Farms</Text>
+          <Text style={styles.statValue}>{stats.total_farmers}</Text>
+          <Text style={styles.statLabel}>Total Farmers</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>2</Text>
+          <Text style={styles.statValue}>{stats.total_crops}</Text>
           <Text style={styles.statLabel}>Crops</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>2</Text>
+          <Text style={styles.statValue}>{stats.total_locations}</Text>
           <Text style={styles.statLabel}>Locations</Text>
         </View>
       </View>
 
       {/* Farm Data List */}
       <FlatList
-        data={filteredData}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        data={farmers}
+        keyExtractor={(item) => item.nation_id} // Assuming nation_id is unique
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        } renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
       />
 

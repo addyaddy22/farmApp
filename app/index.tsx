@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import CustomHeader from "../components/CustomHeader";
 import { MaterialIcons } from '@expo/vector-icons';
-import { deleteDatabase, fetchUser, initDatabase, insertUser } from "../utils/database";
+import { deleteDatabase, fetchUser, initDatabase, insertUser, logUser } from "../utils/database";
 import { isOnline, onNetworkChange } from '@/utils/network';
 import { syncFarmData } from '@/utils/sync';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,37 +19,37 @@ export default function Login() {
   //   initDatabase(); // Initialize the database when the app starts
   // }, []);
 
-  useEffect(() => {
-    const initializeAndSync = async () => {
-      console.log("......Preparing to initialize DB");
-      // await deleteDatabase(); // Delete the existing database
-      await initDatabase(); // Reinitialize the database
-      console.log("Database initialized successfully");
+  // useEffect(() => {
+  //   const initializeAndSync = async () => {
+  //     console.log("......Preparing to initialize DB");
+  //     // await deleteDatabase(); // Delete the existing database
+  //     await initDatabase(); // Reinitialize the database
+  //     console.log("Database initialized successfully");
 
-      // Sync data when the app starts
-      if (await isOnline()) {
-        await syncFarmData();
-      }
-    };
+  //     // Sync data when the app starts
+  //     if (await isOnline()) {
+  //       await syncFarmData();
+  //     }
+  //   };
 
-    initializeAndSync();
+  //   initializeAndSync();
 
-    // Sync data when the device comes online
-    const unsubscribe = onNetworkChange((isConnected) => {
-      if (isConnected) {
-        syncFarmData();
-      }
-    });
+  //   // Sync data when the device comes online
+  //   const unsubscribe = onNetworkChange((isConnected) => {
+  //     if (isConnected) {
+  //       syncFarmData();
+  //     }
+  //   });
 
-    // Cleanup listener
-    return () => unsubscribe();
-  }, []);
+  //   // Cleanup listener
+  //   return () => unsubscribe();
+  // }, []);
 
   const handleLogin = async () => {
     console.log('Button login clicked...')
 
     try {
-      const user = await fetchUser(username, password);
+      const user = await logUser(username, password);
       console.log(username)
       console.log(password)
 

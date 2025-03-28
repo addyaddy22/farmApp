@@ -3,8 +3,14 @@ import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { router, useFocusEffect } from 'expo-router'; // Import Expo Router
-import { countCrops, countCropTypes, countUsers } from '@/utils/database';
+import { countCrops, countCropTypes, countUsers, getFarmerStats } from '@/utils/database';
 import { useCallback, useEffect, useState } from 'react';
+
+interface FarmerStats {
+  total_farmers: number;
+  total_crops: number;
+  total_locations: number;
+}
 
 export default function AdminHome() {
 
@@ -12,7 +18,23 @@ export default function AdminHome() {
   const [cropCount, setCropCount] = useState(0)
   const [cropTypeCount, setCropTypeCount] = useState(0)
 
+  // const [farmers, setFarmers] = useState<Farmer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<FarmerStats | null>(null);
 
+
+  const loadStats = async () => {
+    try {
+      const data = await getFarmerStats();
+      setStats(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchUserCount = async () => {
     try {
@@ -45,6 +67,7 @@ export default function AdminHome() {
   };
   useFocusEffect(
     useCallback(() => {
+      loadStats();
       fetchUserCount();
       fetchCropCount();
       fetchCropTypeCount();
@@ -104,7 +127,7 @@ export default function AdminHome() {
             <ThemedText style={styles.statLabel}>Total Users</ThemedText>
           </View>
           <View style={styles.statCard}>
-            <ThemedText style={styles.statValue}>{cropCount}</ThemedText>
+            <ThemedText style={styles.statValue}>{stats?.total_crops}</ThemedText>
             <ThemedText style={styles.statLabel}>Total crops</ThemedText>
           </View>
           <View style={styles.statCard}>

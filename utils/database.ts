@@ -1,14 +1,24 @@
 import { openDatabaseSync } from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
+import { Alert } from "react-native";
 
 const dbName = "myfarmappdb.db";
 const db = openDatabaseSync("myfarmappdb.db");
+const API_BASE_URL = 'https://farm7.eport.dev/api/data';
+
 
 const dbVersion = 3;
 
 type UserVersionResult = {
     user_version: number;
 };
+
+//INTERFACE DEFINATIONS
+interface FarmerStats {
+    total_farmers: number;
+    total_crops: number;
+    total_locations: number;
+}
 
 // Check if the database version matches the current version
 const checkDatabaseVersion = async (): Promise<boolean> => {
@@ -298,3 +308,160 @@ export const updateSyncStatus = async (id: number, status: string): Promise<void
     }
 };
 
+//Database functions
+
+// Log a user by username and password
+export const logUser = async (
+    username: string,
+    password: string
+): Promise<any> => {
+    try {
+        const response = await fetch("https://sandbox.farm7.eport.dev/api/users/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+        console.log(response)
+
+        const data = await response.json();
+        console.log(data)
+
+
+        if (response.ok) {
+            console.log('...............')
+            console.log(data)
+            return data;
+        } else {
+            alert(`Login Unsuccessful: ${data.message || "Unknown error"}`);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error connecting to server:", error);
+        alert("An error occurred. Please try again later.");
+        return null;
+    }
+
+};
+
+export const registerUser = async (
+    username: string,
+    firstname: string,
+    password: string,
+    email: string,
+    role: string
+): Promise<any> => {
+    try {
+        const response = await fetch("https://sandbox.farm7.eport.dev/api/users/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, firstname, password, email, role }),
+        });
+        console.log(response)
+
+        const data = await response.json();
+        console.log(data)
+
+
+        if (response.ok) {
+            console.log('...............')
+            console.log(data)
+            return data;
+        } else {
+            alert(`Register Unsuccessful: ${data.message || "Unknown error"}`);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error connecting to server:", error);
+        alert("An error occurred. Please try again later.");
+        return null;
+    }
+
+};
+
+export const submitToApi = async (data: any) => {
+    try {
+        const response = await fetch('https://farm7.eport.dev/api/data/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add any additional headers like authorization if needed
+                // 'Authorization': 'Bearer your_token_here',
+            },
+            body: JSON.stringify(data),
+        });
+        console.log(response)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error submitting to API:', error);
+        throw error;
+    }
+};
+
+export const submitOptionsToApi = async (data: any) => {
+    try {
+        const response = await fetch('https://farm7.eport.dev/api/data/submitoptions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add any additional headers like authorization if needed
+                // 'Authorization': 'Bearer your_token_here',
+            },
+            body: JSON.stringify(data),
+        });
+        console.log(response)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error submitting to API:', error);
+        throw error;
+    }
+};
+
+
+export const getAllFarmers = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/farmers`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add authorization header if needed
+                // 'Authorization': 'Bearer your_token_here',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const farmers = await response.json();
+        return farmers;
+    } catch (error) {
+        console.error('Error fetching farmers:', error);
+        Alert.alert('Error', 'Failed to fetch farmers data');
+        throw error; // Re-throw the error if you want to handle it in the calling component
+    }
+};
+
+export const getFarmerStats = async (): Promise<FarmerStats> => {
+    try {
+        const response = await fetch('https://farm7.eport.dev/api/data/farmers/stats');
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching farmer stats:', error);
+        throw error;
+    }
+};

@@ -32,8 +32,8 @@ export default function AdminProfile() {
     try {
       await clearUserData();
       await AsyncStorage.setItem("user", JSON.stringify(user));
-      console.log("Logged out User successfully");
-      Alert.alert("Logged out User successfully");
+      console.log("Logged out Admin successfully");
+      Alert.alert("Logged out Admin successfully");
       router.push('/')
     }
     catch (error) {
