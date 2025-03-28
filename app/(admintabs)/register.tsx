@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { router } from 'expo-router';
-import { insertUser } from '@/utils/database';
+import { insertUser, registerUser } from '@/utils/database';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
@@ -25,17 +25,8 @@ export default function Register() {
     console.log('Button Register clicked...')
 
     try {
-      // const role = 'clerk';
-      // const username = 'user1';
-      // const password = 'password';
-      // const email = 'user@user';
-      // console.log(username)
-      // console.log(password)
-      // console.log(role)
-      // console.log(email)
-      const user = await insertUser(username, firstname, password, email, role);
 
-
+      const user = await registerUser(username, firstname, password, email, role);
 
       if (user) {
         console.log(user)
